@@ -43,7 +43,7 @@ xml.definitions 'xmlns' => 'http://schemas.xmlsoap.org/wsdl/',
 
   xml.binding :name => "#{@name}_binding", :type => "tns:#{@name}_port" do
     xml.tag! "soap:binding", :style => 'document', :transport => 'http://schemas.xmlsoap.org/soap/http'
-    @map.keys.each do |operation|
+    @map.each_key do |operation|
       xml.operation :name => operation do
         xml.tag! "soap:operation", :soapAction => operation
         xml.input do
