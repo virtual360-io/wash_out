@@ -48,13 +48,13 @@ xml.definitions 'xmlns' => 'http://schemas.xmlsoap.org/wsdl/',
         xml.tag! "soap:operation", :soapAction => operation
         xml.input do
           xml.tag! "soap:body",
-            :use => "literal",
-            :namespace => @namespace
+                   :use => "literal",
+                   :namespace => @namespace
         end
         xml.output do
           xml.tag! "soap:body",
-            :use => "literal",
-            :namespace => @namespace
+                   :use => "literal",
+                   :namespace => @namespace
         end
       end
     end
