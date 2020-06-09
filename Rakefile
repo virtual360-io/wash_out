@@ -17,7 +17,7 @@ task default: [:all]
 
 desc 'Test the plugin under all supported Rails versions.'
 task :all do |_t|
-    # this is needed for minitest because it does not support "--pattern" option as Rspec Does
-    ENV['SPEC'] = '--name=spec/**{,/*/**}/*_spec.rb'
-    exec('bundle exec appraisal install && bundle exec rake appraisal spec')
+  # this is needed for minitest because it does not support "--pattern" option as Rspec Does
+  ENV['SPEC'] = '--name=spec/**{,/*/**}/*_spec.rb'
+  exec('bundle exec appraisal install && bundle exec rake appraisal spec')
 end
