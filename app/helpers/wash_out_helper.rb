@@ -2,6 +2,8 @@ module WashOutHelper
 
   def wsdl_data_options(param)
     case controller.soap_config.wsdl_style
+    when 'sefaz'
+      {}
     when 'rpc'
       if param.map.present? || !param.value.nil?
         { :"xsi:type" => param.namespaced_type }
@@ -30,23 +32,37 @@ module WashOutHelper
       next if param.attribute?
 
       tag_name = param.name
-      param_options = wsdl_data_options(param)
-      param_options.merge! wsdl_data_attrs(param)
+      param_options = {}#wsdl_data_options(param)
 
+      param_options.merge! wsdl_data_attrs(param)
       if param.struct?
         if param.multiplied
-          param.map.each do |p|
+          param.map.each_with_index do |p,idx|
             attrs = wsdl_data_attrs p
             if p.is_a?(Array) || p.map.size > attrs.size
               blk = proc { wsdl_data(xml, p.map) }
             end
+
             attrs.reject! { |_, v| v.nil? }
-            xml.tag! tag_name, param_options.merge(attrs), &blk
+            if vv = param.map.flatten.select{|p| p.name == "valuedata"}[idx]
+              xml.tag! tag_name, vv.value, param_options.merge(attrs)
+            else
+              xml.tag! tag_name, param_options.merge(attrs), &blk
+            end
           end
         else
-          xml.tag! tag_name, param_options do
-            wsdl_data(xml, param.map)
+          if vv = param.map.detect{|p| p.name == "valuedata"}
+            xml.tag! tag_name, vv.value, param_options
+          else
+            if param.map.blank?
+            else
+              xml.tag! tag_name, param_options do
+                wsdl_data(xml, param.map)
+              end
+            end
+
           end
+
         end
       else
         if param.multiplied
@@ -58,15 +74,22 @@ module WashOutHelper
           xml.tag! tag_name, param.value, param_options
         end
       end
+
+
     end
   end
 
   def wsdl_type(xml, param, defined=[])
     more = []
 
+    prefix = "xsd:"
+    if param.soap_config.config[:wsdl_style]
+      prefix = ""
+    end
+
     if param.struct?
       if !defined.include?(param.basic_type)
-        xml.tag! "xsd:complexType", :name => param.basic_type do
+        xml.tag! "#{prefix}complexType", :name => param.basic_type do
           attrs, elems = [], []
           param.map.each do |value|
             more << value if value.struct?
@@ -78,15 +101,15 @@ module WashOutHelper
           end
 
           if elems.any?
-            xml.tag! "xsd:sequence" do
+            xml.tag! "#{prefix}sequence" do
               elems.each do |value|
-                xml.tag! "xsd:element", wsdl_occurence(value, false, :name => value.name, :type => value.namespaced_type)
+                xml.tag! "#{prefix}element", wsdl_occurence(value, false, :name => value.name, :type => value.namespaced_type)
               end
             end
           end
 
           attrs.each do |value|
-            xml.tag! "xsd:attribute", wsdl_occurence(value, false, :name => value.attr_name, :type => value.namespaced_type)
+            xml.tag! "#{prefix}attribute", wsdl_occurence(value, false, :name => value.attr_name, :type => value.namespaced_type)
           end
         end
 
@@ -102,6 +125,10 @@ module WashOutHelper
   end
 
   def wsdl_occurence(param, inject, extend_with = {})
+    if param.soap_config.config[:wsdl_style] == "sefaz"
+      return extend_with
+    end
+
     data = {"#{'xsi:' if inject}nillable" => 'true'}
     if param.multiplied
       data["#{'xsi:' if inject}minOccurs"] = 0
