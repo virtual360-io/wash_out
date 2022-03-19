@@ -2,8 +2,6 @@ module WashOutHelper
 
   def wsdl_data_options(param)
     case controller.soap_config.wsdl_style
-    when 'sefaz'
-      {}
     when 'rpc'
       if param.map.present? || !param.value.nil?
         { :"xsi:type" => param.namespaced_type }
@@ -32,7 +30,7 @@ module WashOutHelper
       next if param.attribute?
 
       tag_name = param.name
-      param_options = {}#wsdl_data_options(param)
+      param_options = {}
 
       param_options.merge! wsdl_data_attrs(param)
       if param.struct?
@@ -83,7 +81,8 @@ module WashOutHelper
     more = []
 
     prefix = "xsd:"
-    if param.soap_config.config[:wsdl_style]
+
+    if custom_wsdl_style?(param)
       prefix = ""
     end
 
@@ -125,9 +124,7 @@ module WashOutHelper
   end
 
   def wsdl_occurence(param, inject, extend_with = {})
-    if param.soap_config.config[:wsdl_style] == "sefaz"
-      return extend_with
-    end
+    return extend_with if custom_wsdl_style?(param)
 
     data = {"#{'xsi:' if inject}nillable" => 'true'}
     if param.multiplied
@@ -136,4 +133,9 @@ module WashOutHelper
     end
     extend_with.merge(data)
   end
+
+  def custom_wsdl_style?(param)
+    !param.soap_config.config[:wsdl_style].in?(['rpc', 'document'])
+  end
+
 end
