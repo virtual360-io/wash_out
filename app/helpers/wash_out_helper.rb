@@ -43,9 +43,13 @@ module WashOutHelper
 
             attrs.reject! { |_, v| v.nil? }
             if vv = param.map.flatten.select{|p| p.name == "valuedata"}[idx]
-              xml.tag! tag_name, vv.value, param_options.merge(attrs)
+              if !(param.optional && param.value.blank?)
+                xml.tag! tag_name, vv.value, param_options.merge(attrs)
+              end
             else
-              xml.tag! tag_name, param_options.merge(attrs), &blk
+              if !(param.optional && param.value.blank?)
+                xml.tag! tag_name, param_options.merge(attrs), &blk
+              end
             end
           end
         else
@@ -69,7 +73,9 @@ module WashOutHelper
             xml.tag! tag_name, v, param_options
           end
         else
-          xml.tag! tag_name, param.value, param_options
+          if !(param.optional && param.value.blank?)
+            xml.tag! tag_name, param.value, param_options
+          end
         end
       end
 
