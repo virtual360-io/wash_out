@@ -8,6 +8,7 @@ module WashOut
     attr_accessor :value
     attr_accessor :source_class
     attr_accessor :soap_config
+    attr_accessor :optional
 
     # Defines a WSDL parameter with name +name+ and type specifier +type+.
     # The type specifier format is described in #parse_def.
@@ -20,7 +21,9 @@ module WashOut
       @multiplied = multiplied
       @optional   = optional
 
-      if soap_config.camelize_wsdl.to_s == 'lower'
+      if soap_config.blank?
+        #do nothing
+      elsif soap_config.camelize_wsdl.to_s == 'lower'
         @name = @name.camelize(:lower)
       elsif soap_config.camelize_wsdl
         @name = @name.camelize
