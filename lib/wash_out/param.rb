@@ -8,18 +8,22 @@ module WashOut
     attr_accessor :value
     attr_accessor :source_class
     attr_accessor :soap_config
+    attr_accessor :optional
 
     # Defines a WSDL parameter with name +name+ and type specifier +type+.
     # The type specifier format is described in #parse_def.
-    def initialize(soap_config, name, type, multiplied = false)
+    def initialize(soap_config, name, type, multiplied = false, optional = false)
       type ||= {}
       @soap_config = soap_config
       @name       = name.to_s
       @raw_name   = name.to_s
       @map        = {}
       @multiplied = multiplied
+      @optional   = optional
 
-      if soap_config.camelize_wsdl.to_s == 'lower'
+      if soap_config.blank?
+        #do nothing
+      elsif soap_config.camelize_wsdl.to_s == 'lower'
         @name = @name.camelize(:lower)
       elsif soap_config.camelize_wsdl
         @name = @name.camelize
@@ -160,7 +164,7 @@ module WashOut
     end
 
     def flat_copy
-      copy = self.class.new(@soap_config, @name, @type.to_sym, @multiplied)
+      copy = self.class.new(@soap_config, @name, @type.to_sym, @multiplied, @optional)
       copy.raw_name = raw_name
       copy.source_class = source_class
       copy

@@ -21,8 +21,15 @@ module ActionDispatch::Routing
   class Mapper
     # Adds the routes for a SOAP endpoint at +controller+.
     def wash_out(controller_name, options={})
+      scope_opts = options.delete(:scope_opts) || ""
+
       if @scope
-        scope_frame = @scope.respond_to?(:frame) ? @scope.frame : @scope
+        if scope_opts.try(:==, :with_constraint)
+          scope_frame = @scope.parent.respond_to?(:frame) ? @scope.parent.frame : @scope
+        else
+          scope_frame = @scope.respond_to?(:frame) ? @scope.frame : @scope
+        end
+
         options.each{ |key, value|  scope_frame[key] = value }
       end
 
